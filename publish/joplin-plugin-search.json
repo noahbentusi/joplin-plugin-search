@@ -1,0 +1,11 @@
+{
+	"manifest_version": 1,
+	"id": "joplin-plugin-search",
+	"app_min_version": "1.8.1",
+	"version": "0.0.1",
+	"name": "The plugin of joplin for search",
+	"description": "Adds view to show search result.",
+	"author": "Noah yin",
+	"_publish_hash": "sha256:abbe2bb03bd475a7957a6ab8f5338cd4f696c19ddf13ae41813825b83a95e606",
+	"_publish_commit": ""
+}
