@@ -181,6 +181,19 @@ handlers.set("result", async (id, target: NoteTarget, lines: Line[]) => {
     return true;
 });
 
+handlers.set("status", async(target: NoteTarget, index: number, counter: number) => {
+    let tip = `is searching ${currentSearch.keyword}. `;
+
+    if (currentSearch.isRegex)
+    {
+        tip = `is searching /${currentSearch.keyword}/. `;
+    }
+
+    tip += `${target.notebookName} > ${target.noteName} ${index} / ${counter}`;
+
+    $(".search-tip").text(tip);
+});
+
 async function search(keyword: string, isRegex: boolean) {
     keyword = keyword.trim();
 
@@ -228,7 +241,7 @@ $regexCheckedBox.change(() => {
 });
 
 $keywordInput.keyup(() => {
-    delay($keywordInput, "onchange", 300, () => {
+    delay($keywordInput, "onchange", 700, () => {
         search(
             $keywordInput.val(), $regexCheckedBox.attr("checked")
         );

@@ -26,6 +26,7 @@
 .search-result {
     text-align: left;
     overflow: auto;
+    -height: 90vh;
     height: 90vh;
 }
 

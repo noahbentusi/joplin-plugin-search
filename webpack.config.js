@@ -131,7 +131,7 @@ const baseConfig = {
 				use: ['style-loader','css-loader']
 			}
 		],
-	},
+	}
 };
 
 const pluginConfig = Object.assign({}, baseConfig, {

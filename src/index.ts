@@ -23,7 +23,7 @@ const SETTING_TOP_LINES = 'noah.search.top_lines';
 const SETTING_BOTTOM_LINES = 'noah.search.bottom_lines';
 
 let panelId: string = null;
-let active: boolean = true;
+let active: boolean = false;
 let channel: ChannelType = null;
 
 async function initSettings() {
@@ -64,25 +64,18 @@ async function initPanel() {
 	joplin.views.panels.addScript(panelId, "./webview/webview.css");
 	joplin.views.panels.addScript(panelId, "./webview/webview.js");
 
-	/*joplin.views.panels.onMessage(panelId, async (message: WebViewMessage): Promise<any> => {
-		
 
-		return null;
-	});
+	/*try
+	{		
+		const baseDir = await joplin.plugins.installationDir();
+		//console.log(await joplin.plugins.installationDir());
 
-	alert("start??");
+		const worker = new Worker(`${baseDir}/webview/work.js`);
 
-	try
-	{
-		const res = await joplin.views.panels.postMessage(panelId, {
-			event: "test",
-			value: "hello world"
-		});
 
-		alert(res);
 	} catch(err)
 	{
-		alert(String(err));
+		alert(err);
 	}*/
 }
 
@@ -125,21 +118,15 @@ async function initHandlers() {
 	});
 
 	maps.set("search", async (searchId, keyword, isRegex) => {
-		let regex = null;
-		if (isRegex)
-			regex = new RegExp(keyword, "g");
+		/**/
 
-		function matchLine(line: string): boolean {
-			if (!isRegex)
-				return line.indexOf(keyword) != -1;
+		const baseDir = await joplin.plugins.installationDir();
+		const workerJs = `${baseDir}/webview/worker.js`;
 
-			return Array.from(line.matchAll(regex)).length != 0;
-		}
+		const workerMap = new Map<string, Worker>();
 
 		const topLineNum = Number(await joplin.settings.value(SETTING_TOP_LINES));
 		const bottomLineNum = Number(await joplin.settings.value(SETTING_BOTTOM_LINES));
-
-		let toplines = [];
 
 		const result = await dataApi.getNotes({
 			fields: [ 'id', 'parent_id', 'title', 'body' ]
@@ -149,88 +136,77 @@ async function initHandlers() {
 		{
 			await timeout(0);
 
-			const note = result.results[index];
-			let notebook = null;
+			(async function() {
+				const note = result.results[index];
+				let notebook = null;
 
-			if (note.parent_id != null)
-			{
-				notebook = await dataApi.getNoteBook({
-					fields: [ 'id', 'parent_id', 'title' ]
-				}, note.parent_id);
-			}
+				if (note.parent_id != null)
+				{
+					notebook = await dataApi.getNoteBook({
+						fields: [ 'id', 'parent_id', 'title' ]
+					}, note.parent_id);
+				}
 
-			let target: NoteTarget = {
-				notebookId: note.parent_id,
-				notebookName: notebook?.title,
+				let target: NoteTarget = {
+					notebookId: note.parent_id,
+					notebookName: notebook?.title,
 
-				noteId: note.id,
-				noteName: note.title
-			};
+					noteId: note.id,
+					noteName: note.title
+				};
 
-			const lineDumps: Line[] = [];
+				channel("status", target, index, result.results.length);
 
-			const dumpResult = (line: Line) => {
-				lineDumps.push(line);
+				const lineDumps: Line[] = [];
 
-				console.log(line.lineNumber);
-			};
+				const dumpResult = (line: Line) => {
+					lineDumps.push(line);
 
-			const flushDump = () => {
-				if (lineDumps.length == 0)
-					return;
+					console.log(line.lineNumber);
+				};
 
-				channel("result", searchId, target, lineDumps);
-			};
+				const flushDump = () => {
+					if (lineDumps.length != 0)
+					{
+						channel("result", searchId, target, lineDumps);
+					}
 
-			const lines = note.body.split("\n");
-			let lineNumber = 0;
+					const worker = workerMap.get(target.noteId);
+					worker.terminate();
 
-			while(lineNumber < lines.length)
-			{
-				await timeout(0);
+					workerMap.delete(target.noteId);
+					if (workerMap.size == 0)
+					{
+						channel("finish", true);
+					}
+				};
 
-				let line = lines[lineNumber];
+				const worker = new Worker(workerJs);
 
-				toplines.push({
-					lineNumber,
-					lineContent: line
+				worker.onmessage = (event: any) => {
+					const message = event.data;
+
+					if (message.event == "result") {
+						dumpResult(message.line);
+						return;
+					} else
+					if (message.event == "finish") {
+						flushDump();
+					}
+				};
+
+				worker.postMessage({
+					event: "start",
+					keyword,
+					isRegex,
+					body: note.body,
+					topLineNum,
+					bottomLineNum
 				});
 
-				while(toplines.length > topLineNum)
-				{
-					toplines.shift();
-				}
-
-				if (matchLine(line))
-				{
-					toplines.forEach((line) => {
-						dumpResult(line);
-					});
-					toplines = [];
-
-					let bottom = bottomLineNum;
-					while(bottom--) {
-						++lineNumber;
-
-						if (lineNumber >= lines.length)
-							break;
-
-						line = lines[lineNumber];
-
-						dumpResult({
-							lineNumber,
-							lineContent: line
-						});
-					}
-				}
-
-				++lineNumber;
-			}
-
-			flushDump();
+				workerMap.set(target.noteId, worker);
+			})();
 		}
-
-		channel("finish", true);
 	});
 }
 

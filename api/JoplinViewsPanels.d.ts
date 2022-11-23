@@ -13,7 +13,7 @@ export default class JoplinViewsPanels {
     private store;
     private plugin;
     constructor(plugin: Plugin, store: any);
-    private controller;
+    public controller: any;
     /**
      * Creates a new panel
      */

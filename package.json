@@ -4,6 +4,8 @@
   "author": "noahyin",
   "scripts": {
     "dist": "webpack --joplin-plugin-config buildMain && webpack --joplin-plugin-config buildExtraScripts && webpack --joplin-plugin-config createArchive",
+    "build": "webpack --joplin-plugin-config buildMain && webpack --joplin-plugin-config buildExtraScripts",
+    "dev": "webpack --joplin-plugin-config buildMain && webpack --joplin-plugin-config buildExtraScripts && joplin",
     "update": "npm install -g generator-joplin && yo joplin --update"
   },
   "publishConfig": {
