@@ -1576,6 +1576,4 @@ module.exports = Zepto
       }
     }
   }
-})(Zepto)
-
-export default Zepto;
+})(Zepto);

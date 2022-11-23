@@ -1,0 +1,28 @@
+.search-panel {
+    padding: 10px;
+}
+
+.search-input {
+    text-align: center;
+    font-size: 17px;
+}
+
+.search-input input {
+    background-color: transparent !important;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid gray;
+}
+
+.search-input input::placeholder {
+    font-size: 17px;
+}
+
+.search-tip {
+    text-align: center;
+    font-size: 12px;
+}
+
+.search-result {
+    text-align: left;
+}

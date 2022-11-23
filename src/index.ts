@@ -2,10 +2,11 @@ import joplin from 'api';
 import { ToolbarButtonLocation } from 'api/types';
 import { SettingItemType } from 'api/types';
 
-
 import {
 	WebViewMessage
 } from "./common/message";
+
+import html from "./webview/html.js";
 
 const SETTING_TOP_LINES = 'noah.search.top_lines';
 const SETTING_BOTTOM_LINES = 'noah.search.bottom_lines';
@@ -44,16 +45,11 @@ async function initPanel() {
 	panelId = await joplin.views.panels.create("graph");
 
 	await joplin.views.panels.setHtml(
-		panelId,
-		`
-<div class="container">
-	Test for demo
-	<button>this is button</button>
-</div>
-		`
+		panelId, html
 	);
 
 	joplin.views.panels.addScript(panelId, "./webview/jquery.min.js");
+	joplin.views.panels.addScript(panelId, "./webview/webview.css");
 	joplin.views.panels.addScript(panelId, "./webview/webview.js");
 
 	joplin.views.panels.onMessage(panelId, async (message: WebViewMessage): Promise<any> => {
@@ -61,6 +57,21 @@ async function initPanel() {
 
 		return null;
 	});
+
+	alert("start??");
+
+	try
+	{
+		const res = await joplin.views.panels.postMessage(panelId, {
+			event: "test",
+			value: "hello world"
+		});
+
+		alert(res);
+	} catch(err)
+	{
+		alert(String(err));
+	}
 }
 
 async function showPanel(show: boolean | null | undefined) {

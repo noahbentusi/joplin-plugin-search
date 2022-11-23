@@ -58,4 +58,6 @@ export default class JoplinViewsPanels {
      * Tells whether the panel is visible or not
      */
     visible(handle: ViewHandle): Promise<boolean>;
+
+    postMessage(handle: ViewHandle, message: any): Promise<void>;
 }
