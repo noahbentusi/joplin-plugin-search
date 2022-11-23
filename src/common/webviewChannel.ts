@@ -1,3 +1,5 @@
+import $ from "../webview/zepto";
+
 declare var webviewApi : any;
 
 import { 
@@ -18,6 +20,8 @@ export function webviewChannel(handlers: Map<string, ChannelHandler>): ChannelTy
     };
 
     webviewApi.onMessage(async ({ message }): Promise<any> =>  {
+        //$(".error").append(`<div>${JSON.stringify(message)}</div>`);
+
         if (message.event == ChannelEvent.responseEvent) {
             const response: ChannelResponse = message.value;
 

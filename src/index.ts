@@ -120,21 +120,32 @@ async function initHandlers() {
 
 	channel = hostChannel(panelId, maps);
 
+	maps.set("open", async (noteId: string) => {
+		joplin.commands.execute("openNote", noteId);
+	});
+
 	maps.set("search", async (searchId, keyword, isRegex) => {
+		let regex = null;
+		if (isRegex)
+			regex = new RegExp(keyword, "g");
+
+		function matchLine(line: string): boolean {
+			if (!isRegex)
+				return line.indexOf(keyword) != -1;
+
+			return Array.from(line.matchAll(regex)).length != 0;
+		}
+
 		const topLineNum = Number(await joplin.settings.value(SETTING_TOP_LINES));
 		const bottomLineNum = Number(await joplin.settings.value(SETTING_BOTTOM_LINES));
 
 		let toplines = [];
 
-		const dumpResult = (target: NoteTarget, line: Line) => {
-			channel("result", searchId, target, line);			
-		};
-
 		const result = await dataApi.getNotes({
 			fields: [ 'id', 'parent_id', 'title', 'body' ]
 		});
 
-		for(let index = 0; index != 1; ++index)
+		for(let index = 0; index != result.results.length; ++index)
 		{
 			await timeout(0);
 
@@ -156,12 +167,25 @@ async function initHandlers() {
 				noteName: note.title
 			};
 
-			let regex = null;
-			if (isRegex)
-				regex = new RegExp(keyword);
+			const lineDumps: Line[] = [];
+
+			const dumpResult = (line: Line) => {
+				lineDumps.push(line);
+
+				console.log(line.lineNumber);
+			};
+
+			const flushDump = () => {
+				if (lineDumps.length == 0)
+					return;
+
+				channel("result", searchId, target, lineDumps);
+			};
 
 			const lines = note.body.split("\n");
-			for(let lineNumber = 0; lineNumber < lines.length; ++lineNumber)
+			let lineNumber = 0;
+
+			while(lineNumber < lines.length)
 			{
 				await timeout(0);
 
@@ -177,11 +201,12 @@ async function initHandlers() {
 					toplines.shift();
 				}
 
-				if (isRegex? line.match(regex): line.indexOf(keyword) != -1)
+				if (matchLine(line))
 				{
 					toplines.forEach((line) => {
-						dumpResult(target, line);
+						dumpResult(line);
 					});
+					toplines = [];
 
 					let bottom = bottomLineNum;
 					while(bottom--) {
@@ -192,14 +217,20 @@ async function initHandlers() {
 
 						line = lines[lineNumber];
 
-						dumpResult(target, {
+						dumpResult({
 							lineNumber,
 							lineContent: line
 						});
 					}
 				}
+
+				++lineNumber;
 			}
+
+			flushDump();
 		}
+
+		channel("finish", true);
 	});
 }
 

@@ -25,4 +25,22 @@
 
 .search-result {
     text-align: left;
+    overflow: auto;
+    height: 90vh;
+}
+
+.search-result a {
+	color: #8BE9FD;
+}
+
+.search-result .keyword {
+	color: red;
+}
+
+.search-result pre {
+	font-size: 12px;
+}
+
+.search-result .line::before {
+	content: attr(data-line) ": "
 }
