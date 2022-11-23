@@ -9,8 +9,10 @@ export default `
 
     <div class="search-tip"></div>
 
-    <pre class="search-result"></pre>
+    <div class="search-result"></div>
 
     <div class="error"></div>
+
+    <a href=":/6ca2202a277b4505a563475bd072870d">test for link</a>
 </div>
 `;

@@ -1,31 +1,44 @@
 import $ from "./zepto";
 import { delay } from "../common/utils";
 
+import {
+	webviewChannel
+} from "../common/webviewChannel";
+
+import {
+	ChannelHandler,
+	ChannelType, 
+    NoteTarget, Line
+} from "../common/message";
+
 declare var webviewApi : any;
 
-$(".error").text("ready!");
-
-$(".error").text(String($(".search-panel").parent().parent().html()));
+//$(".error").text("ready!");
+//$(".error").text(String($(".search-panel").parent().parent().html()));
 
 const $keywordInput = $(".search-input input[name='keyword']");
 const $regexCheckedBox = $(".search-input input[name='is_regex']");
 
-let searchId = null;
+let searchId: string = null;
+let handlers = new Map<string, ChannelHandler>();
 
-webviewApi.onMessage(({ message }) => {
-    alert("onMessage" + JSON.stringify(message));
+let channel: ChannelType = webviewChannel(handlers);
 
-    return 99;
+handlers.set("result", async (id, note: NoteTarget, line: Line) => {
+    if (searchId != id)
+        return false;
+
+    return true;
 });
 
 async function search(keyword: string, isRegex: boolean) {
     keyword = keyword.trim();
 
+    $(".search-tip").text("");
+    $(".search-result").text("");
+
     if (keyword == "")
     {
-        $(".search-tip").text("");
-        $(".search-result").text("");
-
         return;
     }
 
@@ -38,16 +51,9 @@ async function search(keyword: string, isRegex: boolean) {
 
     $(".search-tip").text(tip);
 
-    searchId = Date.now();
+    searchId = String(Date.now());
 
-    webviewApi.postMessage({
-        event: "search_request",
-        value: {
-            searchId,
-            keyword,
-            isRegex
-        }
-    });
+    channel("search", searchId, keyword, isRegex);
 }
 
 $regexCheckedBox.change(() => {

@@ -12,13 +12,12 @@ import {
 
 import { timeout } from "./utils";
 
-export function channel(panelId: string, handlers: Map<string, ChannelHandler>): ChannelType {
+export function webviewChannel(handlers: Map<string, ChannelHandler>): ChannelType {
     let local = {
-        sendToWebview: null,
         stubs: { }
     };
 
-    webviewApi.onMessage(async (message: WebViewMessage): Promise<any> =>  {
+    webviewApi.onMessage(async ({ message }): Promise<any> =>  {
         if (message.event == ChannelEvent.responseEvent) {
             const response: ChannelResponse = message.value;
 
@@ -33,10 +32,10 @@ export function channel(panelId: string, handlers: Map<string, ChannelHandler>):
         if (message.event == ChannelEvent.requestEvent) {
             const request: ChannelRequest = message.value;
 
-            const handler = handlers[request.requestId];
+            const handler = handlers.get(request.name);
             if (handler == null)
                 return Promise.reject(new Error("no that handler"));
-    
+
             return handler.apply(null, request.args);
         }
 
@@ -45,10 +44,6 @@ export function channel(panelId: string, handlers: Map<string, ChannelHandler>):
 
     return (name: string, ...args: any): Promise<any> => {
         return new Promise<any>(async (resolve, reject) => {
-            while(local.sendToWebview == null) {
-                await timeout(300);
-            }
-
             const requestId = `${name}-${Date.now()}`;
 
             local.stubs[requestId] = {

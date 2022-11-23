@@ -12,5 +12,7 @@ export default `
     <pre class="search-result"></pre>
 
     <div class="error"></div>
+
+    <a href=":/6ca2202a277b4505a563475bd072870d">test for link</a>
 </div>
 `;
