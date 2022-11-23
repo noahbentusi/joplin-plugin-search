@@ -6,6 +6,6 @@
 	"name": "The plugin of joplin for search",
 	"description": "Adds view to show search result.",
 	"author": "Noah yin",
-	"_publish_hash": "sha256:af025f7fb25b8a8383336f264df0cdbd2da386e270a8da9890ad4c0c8b08067d",
-	"_publish_commit": "master:54d0c4e3322467dfb3f5188169a68adaf3b0d80a"
+	"_publish_hash": "sha256:55fdf951dcbe14117f53f8f20d75a025bbedd2e6759a71cef4e9509fc0b950a3",
+	"_publish_commit": "master:660b08a9b8957a7a7d8c05cdb4334cb80225eed7"
 }

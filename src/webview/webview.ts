@@ -84,7 +84,7 @@ function splitePartByRegex(line: string, keyword: string) {
 }
 
 function matchLine(line: Line): string {
-    const $line = $(`<div class="line" data-line="${line.lineNumber}"></div>`);
+    const $line = $(`<div class="line" data-line="${line.lineNumber + 1}"></div>`);
 
     const parts = currentSearch.isRegex?
         splitePartByRegex(line.lineContent, currentSearch.keyword):
@@ -141,7 +141,7 @@ function createNoteBlock(target: NoteTarget) {
             return;
         }
 
-        noteBlock.$root.append(`<li>line: ${line.lineNumber}</li>`);
+        noteBlock.$root.append(`<li>line: ${line.lineNumber + 1}</li>`);
 
         noteBlock.$lines = $("<pre></pre>");
 
@@ -241,9 +241,17 @@ $regexCheckedBox.change(() => {
 });
 
 $keywordInput.keyup(() => {
+    const keyword = $keywordInput.val().trim();
+    if (keyword == "")
+    {
+        delay($keywordInput, "onchange", -1, null);
+
+        return search(keyword, false);
+    }
+
     delay($keywordInput, "onchange", 700, () => {
         search(
-            $keywordInput.val(), $regexCheckedBox.attr("checked")
+            keyword, $regexCheckedBox.attr("checked")
         );
     });
 });

@@ -2,7 +2,8 @@ export const delay = function(namespace: any, name: string, timeout: number, fun
     if (namespace[name] != null)
         clearTimeout(namespace[name]);
     
-    namespace[name] = setTimeout(func, timeout);
+    if (func != null)
+        namespace[name] = setTimeout(func, timeout);
   };
 
 export const timeout = function(timer: number) {
