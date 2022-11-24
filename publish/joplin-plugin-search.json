@@ -4,8 +4,16 @@
 	"app_min_version": "1.8.1",
 	"version": "0.0.1",
 	"name": "The plugin of joplin for search",
-	"description": "Adds view to show search result.",
+	"description": "Add view to show search result.",
 	"author": "Noah yin",
-	"_publish_hash": "sha256:55fdf951dcbe14117f53f8f20d75a025bbedd2e6759a71cef4e9509fc0b950a3",
-	"_publish_commit": "master:660b08a9b8957a7a7d8c05cdb4334cb80225eed7"
+	"homepage_url": "",
+	"repository_url": "",
+	"keywords": [
+		"search",
+		"joplin",
+		"plugin",
+		"joplin-plugin"
+	],
+	"_publish_hash": "sha256:212e302a991486b892e7784cee67149b3d6cf87f6b7537ac76405422fa33506c",
+	"_publish_commit": "master:b78c4318be077d9714234a8b14c9ce5cce239388"
 }

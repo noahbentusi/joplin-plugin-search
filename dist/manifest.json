@@ -4,6 +4,9 @@
 	"app_min_version": "1.8.1",
 	"version": "0.0.1",
 	"name": "The plugin of joplin for search",
-	"description": "Adds view to show search result.",
-	"author": "Noah yin"
+	"description": "Add view to show search result.",
+	"author": "Noah yin",
+	"homepage_url": "",
+	"repository_url": "",
+	"keywords": [ "search", "joplin", "plugin", "joplin-plugin" ]
 }
