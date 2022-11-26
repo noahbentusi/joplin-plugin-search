@@ -54,7 +54,7 @@ function splitPartByKeyword(line: string, keyword: string) {
     return parts;
 }
 
-function splitePartByRegex(line: string, keyword: string) {
+function splitPartByRegex(line: string, keyword: string) {
     const regex = new RegExp(keyword, "g");
 
     let parts = [ ];
@@ -87,10 +87,8 @@ function matchLine(line: Line): string {
     const $line = $(`<div class="line" data-line="${line.lineNumber + 1}"></div>`);
 
     const parts = currentSearch.isRegex?
-        splitePartByRegex(line.lineContent, currentSearch.keyword):
+        splitPartByRegex(line.lineContent, currentSearch.keyword):
         splitPartByKeyword(line.lineContent, currentSearch.keyword);
-
-    //$(".error").append(`<div>${line.lineContent}, ${JSON.stringify(parts)}</div>`);
 
     parts.forEach((part) => {
         if (typeof(part) === "string") {
@@ -118,8 +116,26 @@ function createNoteBlock(target: NoteTarget) {
         appendLine: null
     };
 
+    if (currentSearch.noteBooks[target.notebookId] == null) 
+    {
+        currentSearch.noteBooks[target.notebookId] = {
+            notebookId: target.notebookId,
+            notebookName: target.notebookName,
+            notes: {
+                [target.noteId]: noteBlock
+            }
+        }
+    } else
+    {
+        currentSearch.noteBooks[target.notebookId].notes[target.noteId] = noteBlock;
+    }
+
+    currentSearch.notes[target.noteId] = noteBlock;
+
     noteBlock.$root = $(`
-<div class="note">
+<div class="note"
+    data-note="${target.noteId}"
+    data-notebook="${target.notebookId}">
     <h4>
         <a class="link" data-id="${target.noteId}" href="javascript:;">
             ${target.notebookName} > ${target.noteName}
@@ -155,14 +171,100 @@ function createNoteBlock(target: NoteTarget) {
 }
 
 handlers.set("finish", async () => {
-    let tip = `search ${currentSearch.keyword} done.`;
+    let tip = `'${currentSearch.keyword}' result: `;
 
     if (currentSearch.isRegex)
     {
-        tip = `search /${currentSearch.keyword}/ done.`;
+        tip = `/${currentSearch.keyword}/ result: `;
     }
 
-    $(".search-tip").text(tip);
+    tip += "<select class='notebooks'></select> > <select class='notes'></select>";
+
+    $(".search-tip").html(tip);
+
+    const $notebooks = $(".search-tip .notebooks");
+    const $notes = $(".search-tip .notes");
+
+    const local = {
+        notebookSelector: "-1",
+        noteSelector: "-1"
+    };
+
+    $notebooks.append(`<option value="-1">All</option>`);
+
+    Object.values(currentSearch.noteBooks).sort((left: any, right: any) => {
+        return left.notebookName.localeCompare(right.notebookName);
+    }).forEach((notebook: any, index) => {
+        $notebooks.append(`<option value="${notebook.notebookId}">${notebook.notebookName}</option>`);
+    })
+
+    $notes.append(`<option value="-1">All</option>`);
+
+    Object.values(currentSearch.notes).sort((left: any, right: any) => {
+        return left.target.noteName.localeCompare(right.target.noteName);
+    }).forEach((note: any) => {
+        $notes.append(`<option value="${note.target.noteId}">${note.target.noteName}</option>`);
+    });
+
+    function filter() {
+        //alert($(".search-result").html());
+        //const html = $(".search-result").html();
+
+        //$(".search-result").text(html);
+        if (local.noteSelector != "-1")
+        {
+            $(`.search-result .note`).hide();
+            $(`.search-result .note[data-note='${local.noteSelector}']`).show();
+
+            //$(".search-result").text(`.search-result .note[data-note='${local.noteSelector}']`);
+        } else
+        if (local.notebookSelector != "-1")
+        {
+            $(`.search-result .note`).hide();
+            $(`.search-result .note[data-notebook='${local.notebookSelector}']`).show();
+
+            //$(".search-result").text(`.search-result .note[data-notebook='${local.notebookSelector}']`);
+        } else
+        {
+            $(`.search-result .note`).show();
+        }
+    }
+
+    $notebooks.change(function() {
+        local.notebookSelector = $(this).val();
+
+        local.noteSelector = "-1";
+        $notes.html(`<option value="-1">All</option>`);
+
+        if (local.notebookSelector != "-1")
+        {
+            const notebook = currentSearch.noteBooks[local.notebookSelector];
+
+            if (notebook != null)
+            {
+                Object.values(notebook.notes).sort((left: any, right: any) => {
+                    return left.target.noteName.localeCompare(right.target.noteName);
+                }).forEach((note: any) => {
+                    $notes.append(`<option value="${note.target.noteId}">${note.target.noteName}</option>`);
+                });
+            }
+        } else
+        {
+            Object.values(currentSearch.notes).sort((left: any, right: any) => {
+                return left.target.noteName.localeCompare(right.target.noteName);
+            }).forEach((note: any) => {
+                $notes.append(`<option value="${note.target.noteId}">${note.target.noteName}</option>`);
+            });
+        }
+
+        filter();
+    });
+
+    $notes.change(function() {
+        local.noteSelector = $(this).val();
+
+        filter();
+    });
 });
 
 handlers.set("result", async (id, target: NoteTarget, lines: Line[]) => {
@@ -219,7 +321,10 @@ async function search(keyword: string, isRegex: boolean) {
     currentSearch = {
         searchId,
         keyword,
-        isRegex
+        isRegex,
+
+        noteBooks: { },
+        notes: { }
     };
 
     currentNote = null;
